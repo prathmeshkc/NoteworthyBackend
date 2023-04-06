@@ -54,6 +54,13 @@ public class NoteController {
         );
     }
 
+    @DeleteMapping("/{noteId}")
+    public ResponseEntity<?> deleteNote(
+            @PathVariable String noteId
+    ) {
+        return noteService.deleteNote(noteId);
+    }
+
 
     @GetMapping("/")
     public ResponseEntity<?> getAllNotes(HttpServletRequest httpServletRequest) {

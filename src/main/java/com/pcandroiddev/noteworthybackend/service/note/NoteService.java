@@ -4,10 +4,10 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.pcandroiddev.noteworthybackend.dao.note.NoteDao;
 import com.pcandroiddev.noteworthybackend.dao.user.UserDao;
-import com.pcandroiddev.noteworthybackend.filter.MutableHttpServletRequest;
 import com.pcandroiddev.noteworthybackend.model.exception.ExceptionBody;
 import com.pcandroiddev.noteworthybackend.model.note.ImgUrl;
 import com.pcandroiddev.noteworthybackend.model.note.Note;
+import com.pcandroiddev.noteworthybackend.model.response.DeletedNoteResponse;
 import com.pcandroiddev.noteworthybackend.model.response.NoteResponse;
 import com.pcandroiddev.noteworthybackend.model.user.User;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -121,6 +120,10 @@ public class NoteService {
 
         Note oldNote = noteDao.getNoteById(noteId);
 
+        if(oldNote == null) {
+            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+        }
+
         if (oldNote.getImg_urls() != null && oldNote.getImg_urls().size() > 0) {
             for (ImgUrl imgUrl : oldNote.getImg_urls()) {
                 try {
@@ -151,6 +154,45 @@ public class NoteService {
                 .title(updatedNote.getTitle())
                 .description(updatedNote.getDescription())
                 .img_urls(updatedNote.getImg_urls())
+                .build()
+        );
+
+    }
+
+    public ResponseEntity<?> deleteNote(String id) {
+        Integer noteId = Integer.parseInt(id);
+        Note deletedNote = noteDao.deleteNoteById(noteId);
+
+        if (deletedNote == null) {
+            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+        }
+
+         /*
+            Clean-up Old Resources
+        */
+
+        if (deletedNote.getImg_urls() != null && deletedNote.getImg_urls().size() > 0) {
+            for (ImgUrl imgUrl : deletedNote.getImg_urls()) {
+                try {
+                    String public_id = imgUrl.getPublic_id();
+                    deleteFile(public_id);
+                } catch (IOException e) {
+                    return ResponseEntity.internalServerError().body(new ExceptionBody("Error Destroying Image!"));
+                }
+            }
+        }
+
+        NoteResponse deletedNoteResponse = NoteResponse.builder()
+                .noteId(deletedNote.getId())
+                .userId(deletedNote.getUser().getId())
+                .title(deletedNote.getTitle())
+                .description(deletedNote.getDescription())
+                .img_urls(deletedNote.getImg_urls())
+                .build();
+
+        return ResponseEntity.accepted().body(DeletedNoteResponse.builder()
+                .message("Note Deleted Successfully!")
+                .deleted_Note(deletedNoteResponse)
                 .build()
         );
 

@@ -2,11 +2,9 @@ package com.pcandroiddev.noteworthybackend.dao.note;
 
 import com.pcandroiddev.noteworthybackend.dao.Dao;
 import com.pcandroiddev.noteworthybackend.model.note.Note;
-import com.pcandroiddev.noteworthybackend.model.user.User;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.TransactionRequiredException;
 import jakarta.transaction.Transactional;
-import org.hibernate.NonUniqueResultException;
 import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
 
@@ -39,10 +37,15 @@ public class NoteDao extends Dao {
     }
 
 
-    public Note updateNoteById(Integer noteId, Note newNote){
+    public Note updateNoteById(Integer noteId, Note newNote) {
         try {
             begin();
             Note note = getEntityManager().find(Note.class, noteId);
+
+            if(note == null){
+                System.out.println("Cannot find Note with Id: " + noteId);
+                return null;
+            }
 
             note.setTitle(newNote.getTitle());
             note.setDescription(newNote.getDescription());
@@ -62,6 +65,31 @@ public class NoteDao extends Dao {
             return null;
         }
     }
+
+
+    public Note deleteNoteById(Integer noteId) {
+        try {
+            begin();
+            Note noteToRemove = getEntityManager().find(Note.class, noteId);
+            if(noteToRemove == null){
+                System.out.println("Cannot find Note with Id: " + noteId);
+                return null;
+            }
+            getEntityManager().remove(noteToRemove);
+            commit();
+            return noteToRemove;
+        } catch (IllegalArgumentException e) {
+            System.out.println("IllegalArgumentException: " + e.getMessage());
+            return null;
+        } catch (TransactionRequiredException e) {
+            System.out.println("TransactionRequiredException: " + e.getMessage());
+            return null;
+        } catch (Exception exception) {
+            System.out.println("Some other Exception occurred: " + exception.getMessage());
+            return null;
+        }
+    }
+
 
     public Note getNoteById(Integer noteId) {
         begin();

@@ -28,7 +28,7 @@ public class Note {
     @Column(name = "description", nullable = false, length = 1024)
     private String description;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "note_img_urls")
     private List<ImgUrl> img_urls = new ArrayList<>();
 
