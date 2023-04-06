@@ -1,9 +1,9 @@
 package com.pcandroiddev.noteworthybackend.service.user;
 
-import com.pcandroiddev.noteworthybackend.dao.UserDao;
-import com.pcandroiddev.noteworthybackend.model.auth.AuthenticationResponse;
-import com.pcandroiddev.noteworthybackend.model.auth.LoginRequest;
-import com.pcandroiddev.noteworthybackend.model.auth.RegisterRequest;
+import com.pcandroiddev.noteworthybackend.dao.user.UserDao;
+import com.pcandroiddev.noteworthybackend.model.response.AuthenticationResponse;
+import com.pcandroiddev.noteworthybackend.model.request.LoginRequest;
+import com.pcandroiddev.noteworthybackend.model.request.RegisterRequest;
 import com.pcandroiddev.noteworthybackend.model.exception.ExceptionBody;
 import com.pcandroiddev.noteworthybackend.model.user.Role;
 import com.pcandroiddev.noteworthybackend.model.user.User;
@@ -15,8 +15,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

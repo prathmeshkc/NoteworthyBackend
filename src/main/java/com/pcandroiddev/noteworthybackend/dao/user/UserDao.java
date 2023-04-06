@@ -1,5 +1,6 @@
-package com.pcandroiddev.noteworthybackend.dao;
+package com.pcandroiddev.noteworthybackend.dao.user;
 
+import com.pcandroiddev.noteworthybackend.dao.Dao;
 import com.pcandroiddev.noteworthybackend.model.exception.ExceptionBody;
 import com.pcandroiddev.noteworthybackend.model.user.User;
 import jakarta.persistence.EntityExistsException;
@@ -54,7 +55,25 @@ public class UserDao extends Dao {
     }
 
     public User getUser(int userId) {
-        return getEntityManager().find(User.class, userId);
+        System.out.println("userId: " + userId);
+        begin();
+        User user = getEntityManager().find(User.class, userId);
+        commit();
+        return user;
+    }
+
+    public User findById(int userId) {
+        begin();
+        Query query = (Query) getEntityManager().createQuery("from User u where u.id = :id");
+        query.setParameter("id", userId);
+        try {
+            Object user = query.uniqueResult();
+            commit();
+            return (User) user;
+
+        } catch (NonUniqueResultException nonUniqueResultException) {
+            return null;
+        }
     }
 
     public User findByEmail(String email) {

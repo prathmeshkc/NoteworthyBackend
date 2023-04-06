@@ -1,6 +1,8 @@
 package com.pcandroiddev.noteworthybackend.config;
 
-import com.pcandroiddev.noteworthybackend.dao.UserDao;
+import com.cloudinary.Cloudinary;
+import com.pcandroiddev.noteworthybackend.dao.user.UserDao;
+import com.pcandroiddev.noteworthybackend.util.Constant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +16,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.pcandroiddev.noteworthybackend.util.Constant.*;
+
 
 @Configuration
 @RequiredArgsConstructor
@@ -29,7 +37,7 @@ public class ApplicationConfiguration {
             @Override
             public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
                 UserDetails userDetails = userDao.findByEmail(email);
-                if(userDetails == null){
+                if (userDetails == null) {
                     throw new UsernameNotFoundException("User not found!");
                 }
                 return userDao.findByEmail(email);
@@ -56,5 +64,14 @@ public class ApplicationConfiguration {
         return configuration.getAuthenticationManager();
     }
 
+    @Bean
+    public Cloudinary cloudinary() {
+        Map<String, String> config = new HashMap<>();
+        config.put("cloud_name", CLOUD_NAME);
+        config.put("api_key", API_KEY);
+        config.put("api_secret", API_SECRET);
+
+        return new Cloudinary(config);
+    }
 
 }
