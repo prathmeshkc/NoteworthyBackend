@@ -2,7 +2,6 @@ package com.pcandroiddev.noteworthybackend.config;
 
 import com.cloudinary.Cloudinary;
 import com.pcandroiddev.noteworthybackend.dao.user.UserDao;
-import com.pcandroiddev.noteworthybackend.util.Constant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
