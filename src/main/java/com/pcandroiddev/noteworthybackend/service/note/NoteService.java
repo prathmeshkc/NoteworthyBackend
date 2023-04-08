@@ -120,7 +120,7 @@ public class NoteService {
 
         Note oldNote = noteDao.getNoteById(noteId);
 
-        if(oldNote == null) {
+        if (oldNote == null) {
             return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
         }
 
@@ -215,6 +215,28 @@ public class NoteService {
 
 
         return ResponseEntity.ok(noteResponses);
+    }
+
+    public ResponseEntity<?> searchNotes(String searchText, Integer userId) {
+        List<Note> searchedNotes = noteDao.searchNote(searchText, userId);
+
+        if (searchedNotes == null) {
+            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+        }
+
+        List<NoteResponse> noteResponses = searchedNotes.stream().map(searchedNote ->
+                new NoteResponse(
+                        searchedNote.getId(),
+                        searchedNote.getUser().getId(),
+                        searchedNote.getTitle(),
+                        searchedNote.getDescription(),
+                        searchedNote.getImg_urls()
+
+                )
+        ).toList();
+
+        return ResponseEntity.ok(noteResponses);
+
     }
 
 

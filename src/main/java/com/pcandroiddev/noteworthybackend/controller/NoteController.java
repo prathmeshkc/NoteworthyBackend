@@ -68,5 +68,14 @@ public class NoteController {
         return noteService.getAllNotes(userId);
     }
 
+    @GetMapping("/{searchText}")
+    public ResponseEntity<?> searchNotes(
+            @PathVariable String searchText,
+            HttpServletRequest httpServletRequest
+    ) {
+        Integer userId = Integer.parseInt(httpServletRequest.getHeader("userId"));
+        return noteService.searchNotes(searchText, userId);
+    }
+
 
 }

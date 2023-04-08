@@ -2,8 +2,12 @@ package com.pcandroiddev.noteworthybackend.dao.note;
 
 import com.pcandroiddev.noteworthybackend.dao.Dao;
 import com.pcandroiddev.noteworthybackend.model.note.Note;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.TransactionRequiredException;
+import com.pcandroiddev.noteworthybackend.model.user.User;
+import jakarta.persistence.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
@@ -42,7 +46,7 @@ public class NoteDao extends Dao {
             begin();
             Note note = getEntityManager().find(Note.class, noteId);
 
-            if(note == null){
+            if (note == null) {
                 System.out.println("Cannot find Note with Id: " + noteId);
                 return null;
             }
@@ -71,7 +75,7 @@ public class NoteDao extends Dao {
         try {
             begin();
             Note noteToRemove = getEntityManager().find(Note.class, noteId);
-            if(noteToRemove == null){
+            if (noteToRemove == null) {
                 System.out.println("Cannot find Note with Id: " + noteId);
                 return null;
             }
@@ -116,6 +120,47 @@ public class NoteDao extends Dao {
         } catch (Exception exception) {
             return null;
         }
+    }
+
+    public List<Note> searchNote(String searchText, Integer userId) {
+        begin();
+        CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Note> query = criteriaBuilder.createQuery(Note.class);
+        Root<Note> root = query.from(Note.class);
+        Join<Note, User> userJoin = root.join("user");
+        try {
+            query.select(root).where(
+                    criteriaBuilder.or(
+                            criteriaBuilder.like(root.get("title"), "%" + searchText + "%"),
+                            criteriaBuilder.like(root.get("description"), "%" + searchText + "%")
+                    ),
+                    criteriaBuilder.equal(userJoin.get("id"), userId)
+            );
+
+            List<Note> searchedNotes = getEntityManager().createQuery(query).getResultList();
+            if (searchedNotes.isEmpty()) {
+                System.out.println("No Matching Notes!");
+            }
+            commit();
+            return searchedNotes;
+        } catch (IllegalArgumentException exception) {
+            System.out.println("IllegalArgumentException: " + exception.getMessage());
+            return null;
+        } catch (QueryTimeoutException exception) {
+            System.out.println("QueryTimeoutException : " + exception.getMessage());
+            return null;
+        } catch (TransactionRequiredException e) {
+            System.out.println("TransactionRequiredException: " + e.getMessage());
+            return null;
+        } catch (PessimisticLockException exception) {
+            System.out.println("PessimisticLockException: " + exception.getMessage());
+            return null;
+        } catch (PersistenceException exception) {
+            System.out.println("PersistenceException: " + exception.getMessage());
+            return null;
+        }
+
+//       Query query = (Query) getEntityManager().createQuery("FROM Note n WHERE n.title LIKE '%searchText%' OR description LIKE '%searchText%'")
     }
 
 }
