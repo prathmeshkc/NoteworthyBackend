@@ -7,9 +7,11 @@ import com.pcandroiddev.noteworthybackend.dao.user.UserDao;
 import com.pcandroiddev.noteworthybackend.model.exception.ExceptionBody;
 import com.pcandroiddev.noteworthybackend.model.note.ImgUrl;
 import com.pcandroiddev.noteworthybackend.model.note.Note;
+import com.pcandroiddev.noteworthybackend.model.note.Priority;
 import com.pcandroiddev.noteworthybackend.model.response.DeletedNoteResponse;
 import com.pcandroiddev.noteworthybackend.model.response.NoteResponse;
 import com.pcandroiddev.noteworthybackend.model.user.User;
+import com.pcandroiddev.noteworthybackend.util.Helper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,7 @@ public class NoteService {
     public ResponseEntity<?> createNote(
             String title,
             String description,
+            String passedPriority,
             List<MultipartFile> multipartFileList,
             HttpServletRequest mutableHttpServletRequest
     ) {
@@ -61,10 +64,11 @@ public class NoteService {
                 }
             }
         }
-
+        Priority priority = Helper.fromString(passedPriority);
         Note note = Note.builder()
                 .title(title)
                 .description(description)
+                .priority(priority)
                 .img_urls(imgUrls)
                 .user(user)
                 .build();
@@ -80,6 +84,7 @@ public class NoteService {
                 .userId(userId)
                 .title(savedNote.getTitle())
                 .description(savedNote.getDescription())
+                .priority(priority.name())
                 .img_urls(savedNote.getImg_urls())
                 .build()
         );
@@ -210,12 +215,42 @@ public class NoteService {
                 note.getUser().getId(),
                 note.getTitle(),
                 note.getDescription(),
+                note.getPriority().name(),
                 note.getImg_urls()
         )).toList();
 
 
         return ResponseEntity.ok(noteResponses);
     }
+
+    public ResponseEntity<?> sortNotesByPriority(Integer userId, String sortBy) {
+        List<Note> notesLowToHigh = null;
+
+        if (sortBy.equalsIgnoreCase("low")) {
+            notesLowToHigh = noteDao.sortNotesByLowPriority(userId);
+        } else if (sortBy.equalsIgnoreCase("high")) {
+            notesLowToHigh = noteDao.sortNotesByHighPriority(userId);
+        }else {
+            return getAllNotes(userId);
+        }
+
+        if (notesLowToHigh == null) {
+            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+        }
+
+        List<NoteResponse> noteResponses = notesLowToHigh.stream().map(note -> new NoteResponse(
+                note.getId(),
+                note.getUser().getId(),
+                note.getTitle(),
+                note.getDescription(),
+                note.getPriority().name(),
+                note.getImg_urls()
+        )).toList();
+
+
+        return ResponseEntity.ok(noteResponses);
+    }
+
 
     public ResponseEntity<?> searchNotes(String searchText, Integer userId) {
         List<Note> searchedNotes = noteDao.searchNote(searchText, userId);
@@ -230,8 +265,8 @@ public class NoteService {
                         searchedNote.getUser().getId(),
                         searchedNote.getTitle(),
                         searchedNote.getDescription(),
+                        searchedNote.getPriority().name(),
                         searchedNote.getImg_urls()
-
                 )
         ).toList();
 

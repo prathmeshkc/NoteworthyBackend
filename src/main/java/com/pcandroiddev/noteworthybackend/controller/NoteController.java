@@ -24,6 +24,7 @@ public class NoteController {
     public ResponseEntity<?> createNote(
             @RequestParam(name = "title") String title,
             @RequestParam(name = "description") String description,
+            @RequestParam(name = "priority") String priority,
             @RequestParam(name = "img_urls", required = false) List<MultipartFile> multipartFileList,
             HttpServletRequest mutableHttpServletRequest
     ) {
@@ -31,6 +32,7 @@ public class NoteController {
         return noteService.createNote(
                 title,
                 description,
+                priority,
                 multipartFileList,
                 mutableHttpServletRequest
         );
@@ -75,6 +77,17 @@ public class NoteController {
     ) {
         Integer userId = Integer.parseInt(httpServletRequest.getHeader("userId"));
         return noteService.searchNotes(searchText, userId);
+    }
+
+    @GetMapping("/sortBy")
+    public ResponseEntity<?> sortNotesByPriority(
+            @RequestParam("sortBy") String sortBy,
+            HttpServletRequest httpServletRequest
+    ) {
+        Integer userId = Integer.parseInt(httpServletRequest.getHeader("userId"));
+
+        return noteService.sortNotesByPriority(userId, sortBy);
+
     }
 
 
