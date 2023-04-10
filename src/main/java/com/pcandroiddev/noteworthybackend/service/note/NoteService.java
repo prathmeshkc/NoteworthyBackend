@@ -96,6 +96,7 @@ public class NoteService {
             String id,
             String title,
             String description,
+            String passedPriority,
             List<MultipartFile> multipartFileList,
             HttpServletRequest mutableHttpServletRequest
     ) {
@@ -140,10 +141,12 @@ public class NoteService {
             }
         }
 
+        Priority priority = Helper.fromString(passedPriority);
 
         Note newNote = Note.builder()
                 .title(title)
                 .description(description)
+                .priority(priority)
                 .img_urls(imgUrls)
                 .build();
 
@@ -158,6 +161,7 @@ public class NoteService {
                 .userId(userId)
                 .title(updatedNote.getTitle())
                 .description(updatedNote.getDescription())
+                .priority(priority.name())
                 .img_urls(updatedNote.getImg_urls())
                 .build()
         );
@@ -192,6 +196,7 @@ public class NoteService {
                 .userId(deletedNote.getUser().getId())
                 .title(deletedNote.getTitle())
                 .description(deletedNote.getDescription())
+                .priority(deletedNote.getPriority().name())
                 .img_urls(deletedNote.getImg_urls())
                 .build();
 
@@ -230,7 +235,7 @@ public class NoteService {
             notesLowToHigh = noteDao.sortNotesByLowPriority(userId);
         } else if (sortBy.equalsIgnoreCase("high")) {
             notesLowToHigh = noteDao.sortNotesByHighPriority(userId);
-        }else {
+        } else {
             return getAllNotes(userId);
         }
 

@@ -53,6 +53,7 @@ public class NoteDao extends Dao {
 
             note.setTitle(newNote.getTitle());
             note.setDescription(newNote.getDescription());
+            note.setPriority(newNote.getPriority());
             note.setImg_urls(newNote.getImg_urls());
 
             Note updatedNote = getEntityManager().merge(note);
@@ -124,7 +125,6 @@ public class NoteDao extends Dao {
 
     public List<Note> sortNotesByLowPriority(Integer userId) {
         begin();
-//        Query query = (Query) getEntityManager().createQuery("FROM Note n WHERE n.user.id = :userId ORDER BY CASE WHEN ENUM(n.priority) = 'LOW' THEN 1 WHEN ENUM(n.priority) = 'MEDIUM' THEN 2 WHEN ENUM(n.priority) = 'HIGH' THEN 3 END");
         Query query = (Query) getEntityManager().createQuery("from Note n where n.user.id = :userId order by case n.priority when 'LOW' then 1 when 'MEDIUM' then 2 when 'HIGH' then 3 end");
         query.setParameter("userId", userId);
         try {
