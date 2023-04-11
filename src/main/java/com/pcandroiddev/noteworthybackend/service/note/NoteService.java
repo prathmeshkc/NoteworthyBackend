@@ -102,12 +102,15 @@ public class NoteService {
     ) {
         Integer noteId = Integer.parseInt(id);
         Integer userId = Integer.parseInt(mutableHttpServletRequest.getHeader("userId"));
+        Note oldNote = noteDao.getNoteById(noteId);
 
-        /*
+
+        List<ImgUrl> imgUrls = new ArrayList<>();
+
+        if (multipartFileList != null && multipartFileList.size() > 0) {
+            /*
           Add New Images
          */
-        List<ImgUrl> imgUrls = new ArrayList<>();
-        if (multipartFileList != null && multipartFileList.size() > 0) {
             for (MultipartFile file : multipartFileList) {
                 try {
                     ImgUrl imgUrl = uploadFile(file);
@@ -117,37 +120,48 @@ public class NoteService {
                 }
             }
 
-        }
 
 
         /*
             Clean-up Old Resources
         */
 
-        Note oldNote = noteDao.getNoteById(noteId);
 
-        if (oldNote == null) {
-            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
-        }
+            if (oldNote == null) {
+                return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+            }
 
-        if (oldNote.getImg_urls() != null && oldNote.getImg_urls().size() > 0) {
-            for (ImgUrl imgUrl : oldNote.getImg_urls()) {
-                try {
-                    String public_id = imgUrl.getPublic_id();
-                    deleteFile(public_id);
-                } catch (IOException e) {
-                    return ResponseEntity.internalServerError().body(new ExceptionBody("Error Destroying Image!"));
+            if (oldNote.getImg_urls() != null && oldNote.getImg_urls().size() > 0) {
+                for (ImgUrl imgUrl : oldNote.getImg_urls()) {
+                    try {
+                        String public_id = imgUrl.getPublic_id();
+                        deleteFile(public_id);
+                    } catch (IOException e) {
+                        return ResponseEntity.internalServerError().body(new ExceptionBody("Error Destroying Image!"));
+                    }
                 }
             }
+
+
         }
 
+
         Priority priority = Helper.fromString(passedPriority);
+
+        List<ImgUrl> newImgUrls;
+
+        if (!imgUrls.isEmpty()) {
+            newImgUrls = imgUrls;
+        } else {
+            newImgUrls = oldNote.getImg_urls();
+        }
+
 
         Note newNote = Note.builder()
                 .title(title)
                 .description(description)
                 .priority(priority)
-                .img_urls(imgUrls)
+                .img_urls(newImgUrls)
                 .build();
 
         Note updatedNote = noteDao.updateNoteById(noteId, newNote);
@@ -287,7 +301,7 @@ public class NoteService {
                         Map.of("public_id", UUID.randomUUID().toString())
                 );
         String public_id = (String) uploadResult.get("public_id");
-        String public_url = (String) uploadResult.get("url");
+        String public_url = (String) uploadResult.get("secure_url");
 
         return new ImgUrl(public_id, public_url);
 
