@@ -25,23 +25,21 @@ public class HibernateUtil {
 
                 // Hibernate settings equivalent to hibernate.cfg.xml's properties
                 Properties settings = new Properties();
-                settings.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
+                /*settings.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
                 settings.put(Environment.URL, "jdbc:mysql://localhost:3306/noteworthydb?createDatabaseIfNotExist=true");
                 settings.put(Environment.USER, "root");
-                settings.put(Environment.PASS, "9403570266");
+                settings.put(Environment.PASS, "9403570266");*/
 
                 /*
                 Railway Data Sources
                  */
 
-/*
 
                 settings.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
                 settings.put(Environment.URL, "jdbc:mysql://containers-us-west-169.railway.app:5724/railway");
                 settings.put(Environment.USER, "root");
                 settings.put(Environment.PASS, "rUjbWmWMlf1I2vps7SFr");
 
-*/
 
                 settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
 
