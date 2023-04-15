@@ -52,6 +52,23 @@ public class NoteService {
 
         Integer userId = Integer.parseInt(mutableHttpServletRequest.getHeader("userId"));
         User user = getById(userId);
+
+        if (
+                (title.isBlank() && description.isBlank()) ||
+                        (title.isEmpty() && description.isEmpty())
+        ) {
+            return ResponseEntity.ok(NoteResponse.builder()
+                    .noteId(-1)
+                    .userId(userId)
+                    .title("")
+                    .description("")
+                    .priority("")
+                    .img_urls(new ArrayList<>())
+                    .build()
+            );
+
+        }
+
         List<ImgUrl> imgUrls = new ArrayList<>();
 
         if (multipartFileList != null && multipartFileList.size() > 0) {
@@ -172,7 +189,7 @@ public class NoteService {
 
         return ResponseEntity.ok(NoteResponse.builder()
                 .noteId(updatedNote.getId())
-                .userId(userId)
+                .userId(updatedNote.getUser().getId())
                 .title(updatedNote.getTitle())
                 .description(updatedNote.getDescription())
                 .priority(priority.name())
@@ -243,7 +260,7 @@ public class NoteService {
     }
 
     public ResponseEntity<?> sortNotesByPriority(Integer userId, String sortBy) {
-        List<Note> notesLowToHigh = null;
+        List<Note> notesLowToHigh;
 
         if (sortBy.equalsIgnoreCase("low")) {
             notesLowToHigh = noteDao.sortNotesByLowPriority(userId);

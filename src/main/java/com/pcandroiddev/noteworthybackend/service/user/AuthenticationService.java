@@ -11,8 +11,7 @@ import com.pcandroiddev.noteworthybackend.service.jwt.JWTService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -66,13 +65,21 @@ public class AuthenticationService {
             return ResponseEntity.badRequest().body(new ExceptionBody("User not found!"));
         }
 
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        }catch (BadCredentialsException badCredentialsException){
+            return ResponseEntity.badRequest().body(new ExceptionBody("Incorrect Username or Password!"));
+        }catch (LockedException lockedException){
+            return ResponseEntity.badRequest().body(new ExceptionBody("Account is Locked!"));
+        }catch (DisabledException disabledException){
+            return ResponseEntity.badRequest().body(new ExceptionBody("Account is Disabled!"));
+        }
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
 
         var jwtToken = jwtService.generateTokenFromUserDetails(user);
         return ResponseEntity.ok(AuthenticationResponse.builder()

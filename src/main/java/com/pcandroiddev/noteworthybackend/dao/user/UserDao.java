@@ -27,6 +27,10 @@ public class UserDao extends Dao {
             if (usersInDB.size() > 0) {
                 return new ExceptionBody("User already exists!");
             }
+
+
+
+
             getEntityManager().persist(user);
             commit();
             return user;

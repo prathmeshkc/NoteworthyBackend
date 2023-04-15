@@ -1,6 +1,5 @@
 package com.pcandroiddev.noteworthybackend.controller;
 
-import com.pcandroiddev.noteworthybackend.filter.MutableHttpServletRequest;
 import com.pcandroiddev.noteworthybackend.service.note.NoteService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
