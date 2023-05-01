@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.pcandroiddev.noteworthybackend.util.Helper.noteToEmailBody;
+
 @Service
 @RequiredArgsConstructor
 public class NoteService {
@@ -37,6 +39,9 @@ public class NoteService {
 
     @Autowired
     private Cloudinary cloudinary;
+
+    @Autowired
+    private EmailSenderService emailSenderService;
 
     private User getById(Integer userId) {
         return userDao.getUser(userId);
@@ -123,12 +128,14 @@ public class NoteService {
 
 
         List<ImgUrl> imgUrls = new ArrayList<>();
+        System.out.println("multipartFileList: " + multipartFileList);
 
         if (multipartFileList != null && multipartFileList.size() > 0) {
             /*
           Add New Images
          */
             for (MultipartFile file : multipartFileList) {
+                System.out.println("File" + file);
                 try {
                     ImgUrl imgUrl = uploadFile(file);
                     imgUrls.add(imgUrl);
@@ -169,7 +176,9 @@ public class NoteService {
 
         if (!imgUrls.isEmpty()) {
             newImgUrls = imgUrls;
-        } else {
+        }
+
+        else {
             newImgUrls = oldNote.getImg_urls();
         }
 
@@ -308,6 +317,32 @@ public class NoteService {
 
         return ResponseEntity.ok(noteResponses);
 
+    }
+
+    public ResponseEntity<?> shareNoteByEmail(String id) {
+        Integer noteId = Integer.parseInt(id);
+        Note note = noteDao.getNoteById(noteId);
+        System.out.println("shareNoteByEmail: " + note);
+        String emailBody = noteToEmailBody(note);
+
+        String emailStatus = emailSenderService.sendEmailWithAttachments(
+                "prathmesh.kiranchaudhari2001@gmail.com",
+                emailBody,
+                note.getImg_urls()
+        );
+
+        if (emailStatus == null) {
+            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+        }
+
+        return ResponseEntity.ok(new NoteResponse(
+                note.getId(),
+                note.getUser().getId(),
+                note.getTitle(),
+                note.getDescription(),
+                note.getPriority().name(),
+                note.getImg_urls()
+        ));
     }
 
 

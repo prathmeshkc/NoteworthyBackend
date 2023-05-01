@@ -63,6 +63,7 @@ public class NoteDao extends Dao {
             note.setImg_urls(newNote.getImg_urls());
 
             Note updatedNote = getEntityManager().merge(note);
+            System.out.println("Updated Note: " + updatedNote);
             commit();
             return updatedNote;
         } catch (IllegalArgumentException e) {
@@ -176,9 +177,9 @@ public class NoteDao extends Dao {
 
         begin();
         Query query;
-        if(user.getRole().name().equals("ADMIN")){
+        if (user.getRole().name().equals("ADMIN")) {
             query = (Query) getEntityManager().createQuery("FROM Note n ORDER BY CASE n.priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 3 END");
-        }else {
+        } else {
             query = (Query) getEntityManager().createQuery("FROM Note n WHERE n.user.id = :userId ORDER BY CASE n.priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 3 END");
             query.setParameter("userId", userId);
         }

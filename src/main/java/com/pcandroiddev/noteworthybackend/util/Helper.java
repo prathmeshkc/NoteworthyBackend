@@ -1,5 +1,6 @@
 package com.pcandroiddev.noteworthybackend.util;
 
+import com.pcandroiddev.noteworthybackend.model.note.Note;
 import com.pcandroiddev.noteworthybackend.model.note.Priority;
 
 public class Helper {
@@ -16,6 +17,17 @@ public class Helper {
             case "high" -> Priority.HIGH;
             default -> throw new IllegalArgumentException("Invalid priority: " + priorityString);
         };
+    }
+
+
+    public static String noteToEmailBody(Note note) {
+        return "Title - " +
+                note.getTitle() +
+                "\n" +
+                "Description - " +
+                note.getDescription() +
+                "\n";
+
     }
 
 }

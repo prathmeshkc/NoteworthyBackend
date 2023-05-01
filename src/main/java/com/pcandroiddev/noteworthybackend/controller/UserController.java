@@ -1,6 +1,5 @@
 package com.pcandroiddev.noteworthybackend.controller;
 
-import com.pcandroiddev.noteworthybackend.dao.user.UserDao;
 import com.pcandroiddev.noteworthybackend.model.request.LoginRequest;
 import com.pcandroiddev.noteworthybackend.model.request.RegisterRequest;
 import com.pcandroiddev.noteworthybackend.service.user.AuthenticationService;

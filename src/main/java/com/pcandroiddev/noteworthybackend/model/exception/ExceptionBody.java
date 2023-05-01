@@ -11,9 +11,4 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ExceptionBody {
     private String message;
-
-
-
-
-
 }
