@@ -22,10 +22,10 @@ public class Note {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "title", nullable = false, length = 1024)
+    @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "description", nullable = false, length = 1024)
+    @Column(name = "description", nullable = false)
     private String description;
 
     @Column(name = "priority", nullable = false)

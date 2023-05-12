@@ -1,4 +1,4 @@
-package com.pcandroiddev.noteworthybackend.model.exception;
+package com.pcandroiddev.noteworthybackend.model.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExceptionBody {
+public class DeleteImageResponse {
     private String message;
+    private String public_id;
 }

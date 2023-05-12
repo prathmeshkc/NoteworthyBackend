@@ -1,7 +1,7 @@
 package com.pcandroiddev.noteworthybackend.dao.user;
 
 import com.pcandroiddev.noteworthybackend.dao.Dao;
-import com.pcandroiddev.noteworthybackend.model.exception.ExceptionBody;
+import com.pcandroiddev.noteworthybackend.model.exception.MessageBody;
 import com.pcandroiddev.noteworthybackend.model.user.User;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.TransactionRequiredException;
@@ -25,14 +25,13 @@ public class UserDao extends Dao {
             query.setParameter("email", user.getEmail());
             List<User> usersInDB = query.list();
             if (usersInDB.size() > 0) {
-                return new ExceptionBody("User already exists!");
+                return new MessageBody("User already exists!");
             }
-
-
 
 
             getEntityManager().persist(user);
             commit();
+            close();
             return user;
         } catch (EntityExistsException e) {
             System.out.println("EntityExistsException: " + e.getMessage());
@@ -48,14 +47,16 @@ public class UserDao extends Dao {
 
     public void deleteUser(User user) {
         begin();
-        getSession().remove(user);
+        getEntityManager().remove(user);
         commit();
+        close();
     }
 
     public void deleteUserById(int userId) {
         begin();
-        getSession().remove(getUser(userId));
+        getEntityManager().remove(getUser(userId));
         commit();
+        close();
     }
 
     public User getUser(int userId) {
@@ -63,6 +64,7 @@ public class UserDao extends Dao {
         begin();
         User user = getEntityManager().find(User.class, userId);
         commit();
+        close();
         return user;
     }
 
@@ -73,6 +75,7 @@ public class UserDao extends Dao {
         try {
             Object user = query.uniqueResult();
             commit();
+            close();
             return (User) user;
 
         } catch (NonUniqueResultException nonUniqueResultException) {
@@ -87,6 +90,7 @@ public class UserDao extends Dao {
         try {
             Object user = query.uniqueResult();
             commit();
+            close();
             return (User) user;
 
         } catch (NonUniqueResultException nonUniqueResultException) {

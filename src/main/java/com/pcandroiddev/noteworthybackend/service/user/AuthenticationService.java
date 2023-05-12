@@ -4,7 +4,7 @@ import com.pcandroiddev.noteworthybackend.dao.user.UserDao;
 import com.pcandroiddev.noteworthybackend.model.response.AuthenticationResponse;
 import com.pcandroiddev.noteworthybackend.model.request.LoginRequest;
 import com.pcandroiddev.noteworthybackend.model.request.RegisterRequest;
-import com.pcandroiddev.noteworthybackend.model.exception.ExceptionBody;
+import com.pcandroiddev.noteworthybackend.model.exception.MessageBody;
 import com.pcandroiddev.noteworthybackend.model.user.Role;
 import com.pcandroiddev.noteworthybackend.model.user.User;
 import com.pcandroiddev.noteworthybackend.service.jwt.JWTService;
@@ -42,12 +42,12 @@ public class AuthenticationService {
 
         Object savedUser = userDao.saveUser(user);
 
-        if (savedUser instanceof ExceptionBody) {
+        if (savedUser instanceof MessageBody) {
             return ResponseEntity.badRequest().body(savedUser);
         }
 
         if (savedUser == null) {
-            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+            return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
         }
 
         var jwtToken = jwtService.generateTokenFromUserDetails((User) savedUser);
@@ -62,7 +62,7 @@ public class AuthenticationService {
         var user = userDao.findByEmail(request.getEmail());
 
         if (user == null) {
-            return ResponseEntity.badRequest().body(new ExceptionBody("User not found!"));
+            return ResponseEntity.badRequest().body(new MessageBody("User not found!"));
         }
 
         try {
@@ -73,11 +73,11 @@ public class AuthenticationService {
                     )
             );
         }catch (BadCredentialsException badCredentialsException){
-            return ResponseEntity.badRequest().body(new ExceptionBody("Incorrect Username or Password!"));
+            return ResponseEntity.badRequest().body(new MessageBody("Incorrect Username or Password!"));
         }catch (LockedException lockedException){
-            return ResponseEntity.badRequest().body(new ExceptionBody("Account is Locked!"));
+            return ResponseEntity.badRequest().body(new MessageBody("Account is Locked!"));
         }catch (DisabledException disabledException){
-            return ResponseEntity.badRequest().body(new ExceptionBody("Account is Disabled!"));
+            return ResponseEntity.badRequest().body(new MessageBody("Account is Disabled!"));
         }
 
 

@@ -30,6 +30,7 @@ public class NoteDao extends Dao {
             begin();
             getEntityManager().persist(note);
             commit();
+            close();
             return note;
         } catch (EntityExistsException e) {
             System.out.println("EntityExistsException: " + e.getMessage());
@@ -65,6 +66,7 @@ public class NoteDao extends Dao {
             Note updatedNote = getEntityManager().merge(note);
             System.out.println("Updated Note: " + updatedNote);
             commit();
+            close();
             return updatedNote;
         } catch (IllegalArgumentException e) {
             System.out.println("IllegalArgumentException: " + e.getMessage());
@@ -89,6 +91,7 @@ public class NoteDao extends Dao {
             }
             getEntityManager().remove(noteToRemove);
             commit();
+            close();
             return noteToRemove;
         } catch (IllegalArgumentException e) {
             System.out.println("IllegalArgumentException: " + e.getMessage());
@@ -108,6 +111,7 @@ public class NoteDao extends Dao {
         try {
             Note note = getEntityManager().find(Note.class, noteId);
             commit();
+            close();
             return note;
         } catch (IllegalArgumentException e) {
             System.out.println("IllegalArgumentException: " + e.getMessage());
@@ -130,6 +134,7 @@ public class NoteDao extends Dao {
             try {
                 List<Note> notes = query.list();
                 commit();
+                close();
                 return notes;
 
             } catch (Exception exception) {
@@ -142,6 +147,7 @@ public class NoteDao extends Dao {
         try {
             List<Note> notes = query.list();
             commit();
+            close();
             return notes;
 
         } catch (Exception exception) {
@@ -165,6 +171,7 @@ public class NoteDao extends Dao {
         try {
             List<Note> notes = query.list();
             commit();
+            close();
             return notes;
 
         } catch (Exception exception) {
@@ -186,6 +193,7 @@ public class NoteDao extends Dao {
         try {
             List<Note> notes = query.list();
             commit();
+            close();
             return notes;
 
         } catch (Exception exception) {
@@ -226,6 +234,7 @@ public class NoteDao extends Dao {
                 System.out.println("No Matching Notes!");
             }
             commit();
+            close();
             return searchedNotes;
         } catch (IllegalArgumentException exception) {
             System.out.println("IllegalArgumentException: " + exception.getMessage());

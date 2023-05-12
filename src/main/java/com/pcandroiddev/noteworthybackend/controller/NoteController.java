@@ -1,5 +1,6 @@
 package com.pcandroiddev.noteworthybackend.controller;
 
+import com.pcandroiddev.noteworthybackend.model.request.NoteRequest;
 import com.pcandroiddev.noteworthybackend.service.note.NoteService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +22,15 @@ public class NoteController {
 
     @PostMapping("/")
     public ResponseEntity<?> createNote(
-            @RequestParam(name = "title") String title,
-            @RequestParam(name = "description") String description,
-            @RequestParam(name = "priority", required = false) String priority,
-            @RequestParam(name = "img_urls", required = false) List<MultipartFile> multipartFileList,
+            @RequestBody NoteRequest noteRequest,
             HttpServletRequest mutableHttpServletRequest
     ) {
 
         return noteService.createNote(
-                title,
-                description,
-                priority,
-                multipartFileList,
+                noteRequest.getTitle(),
+                noteRequest.getDescription(),
+                noteRequest.getPriority(),
+                noteRequest.getImages(),
                 mutableHttpServletRequest
         );
     }
@@ -40,19 +38,16 @@ public class NoteController {
     @PutMapping("/{noteId}")
     public ResponseEntity<?> updateNote(
             @PathVariable String noteId,
-            @RequestParam(name = "title") String title,
-            @RequestParam(name = "description") String description,
-            @RequestParam(name = "priority", required = false) String priority,
-            @RequestParam(name = "img_urls", required = false) List<MultipartFile> multipartFileList,
+            @RequestBody NoteRequest noteRequest,
             HttpServletRequest mutableHttpServletRequest
     ) {
 
         return noteService.updateNote(
                 noteId,
-                title,
-                description,
-                priority,
-                multipartFileList,
+                noteRequest.getTitle(),
+                noteRequest.getDescription(),
+                noteRequest.getPriority(),
+                noteRequest.getImages(),
                 mutableHttpServletRequest
         );
     }
@@ -99,5 +94,19 @@ public class NoteController {
         return noteService.shareNoteByEmail(noteId);
     }
 
+
+    @PostMapping("/image/upload-image")
+    public ResponseEntity<?> uploadImage(
+            @RequestParam(name = "img_urls", required = false) List<MultipartFile> multipartFileList
+    ) {
+        return noteService.uploadImage(multipartFileList);
+    }
+
+    @DeleteMapping("/image/delete-image/{public_id}")
+    public ResponseEntity<?> deleteImage(
+            @PathVariable String public_id
+    ) {
+        return noteService.deleteImage(public_id);
+    }
 
 }

@@ -1,16 +1,17 @@
 package com.pcandroiddev.noteworthybackend.service.note;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.pcandroiddev.noteworthybackend.dao.note.NoteDao;
 import com.pcandroiddev.noteworthybackend.dao.user.UserDao;
-import com.pcandroiddev.noteworthybackend.model.exception.ExceptionBody;
+import com.pcandroiddev.noteworthybackend.model.exception.MessageBody;
 import com.pcandroiddev.noteworthybackend.model.note.ImgUrl;
 import com.pcandroiddev.noteworthybackend.model.note.Note;
 import com.pcandroiddev.noteworthybackend.model.note.Priority;
+import com.pcandroiddev.noteworthybackend.model.response.DeleteImageResponse;
 import com.pcandroiddev.noteworthybackend.model.response.DeletedNoteResponse;
+import com.pcandroiddev.noteworthybackend.model.response.ImageResponse;
 import com.pcandroiddev.noteworthybackend.model.response.NoteResponse;
 import com.pcandroiddev.noteworthybackend.model.user.User;
+import com.pcandroiddev.noteworthybackend.util.CloudinaryUtil;
 import com.pcandroiddev.noteworthybackend.util.Helper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 import static com.pcandroiddev.noteworthybackend.util.Helper.noteToEmailBody;
 
@@ -38,7 +37,7 @@ public class NoteService {
     private UserDao userDao;
 
     @Autowired
-    private Cloudinary cloudinary;
+    CloudinaryUtil cloudinaryUtil;
 
     @Autowired
     private EmailSenderService emailSenderService;
@@ -51,7 +50,7 @@ public class NoteService {
             String title,
             String description,
             String passedPriority,
-            List<MultipartFile> multipartFileList,
+            List<ImgUrl> imgUrls,
             HttpServletRequest mutableHttpServletRequest
     ) {
 
@@ -59,8 +58,9 @@ public class NoteService {
         User user = getById(userId);
 
         if (
-                (title.isBlank() && description.isBlank()) ||
-                        (title.isEmpty() && description.isEmpty())
+                (title.isEmpty() && description.isEmpty() && imgUrls.isEmpty())
+                        || (title.isBlank() && description.isBlank())
+
         ) {
             return ResponseEntity.ok(NoteResponse.builder()
                     .noteId(-1)
@@ -74,18 +74,6 @@ public class NoteService {
 
         }
 
-        List<ImgUrl> imgUrls = new ArrayList<>();
-
-        if (multipartFileList != null && multipartFileList.size() > 0) {
-            for (MultipartFile file : multipartFileList) {
-                try {
-                    ImgUrl imgUrl = uploadFile(file);
-                    imgUrls.add(imgUrl);
-                } catch (IOException e) {
-                    return ResponseEntity.internalServerError().body(new ExceptionBody("Error Uploading Image!"));
-                }
-            }
-        }
         Priority priority = Helper.fromString(passedPriority);
         Note note = Note.builder()
                 .title(title)
@@ -98,7 +86,7 @@ public class NoteService {
         Note savedNote = noteDao.saveNote(note);
 
         if (savedNote == null) {
-            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+            return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
         }
 
         return ResponseEntity.ok(NoteResponse.builder()
@@ -119,81 +107,24 @@ public class NoteService {
             String title,
             String description,
             String passedPriority,
-            List<MultipartFile> multipartFileList,
+            List<ImgUrl> imgUrls,
             HttpServletRequest mutableHttpServletRequest
     ) {
         Integer noteId = Integer.parseInt(id);
-        Integer userId = Integer.parseInt(mutableHttpServletRequest.getHeader("userId"));
-        Note oldNote = noteDao.getNoteById(noteId);
-
-
-        List<ImgUrl> imgUrls = new ArrayList<>();
-        System.out.println("multipartFileList: " + multipartFileList);
-
-        if (multipartFileList != null && multipartFileList.size() > 0) {
-            /*
-          Add New Images
-         */
-            for (MultipartFile file : multipartFileList) {
-                System.out.println("File" + file);
-                try {
-                    ImgUrl imgUrl = uploadFile(file);
-                    imgUrls.add(imgUrl);
-                } catch (IOException e) {
-                    return ResponseEntity.internalServerError().body(new ExceptionBody("Error Uploading Image!"));
-                }
-            }
-
-
-
-        /*
-            Clean-up Old Resources
-        */
-
-
-            if (oldNote == null) {
-                return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
-            }
-
-            if (oldNote.getImg_urls() != null && oldNote.getImg_urls().size() > 0) {
-                for (ImgUrl imgUrl : oldNote.getImg_urls()) {
-                    try {
-                        String public_id = imgUrl.getPublic_id();
-                        deleteFile(public_id);
-                    } catch (IOException e) {
-                        return ResponseEntity.internalServerError().body(new ExceptionBody("Error Destroying Image!"));
-                    }
-                }
-            }
-
-
-        }
-
 
         Priority priority = Helper.fromString(passedPriority);
-
-        List<ImgUrl> newImgUrls;
-
-        if (!imgUrls.isEmpty()) {
-            newImgUrls = imgUrls;
-        }
-
-        else {
-            newImgUrls = oldNote.getImg_urls();
-        }
-
 
         Note newNote = Note.builder()
                 .title(title)
                 .description(description)
                 .priority(priority)
-                .img_urls(newImgUrls)
+                .img_urls(imgUrls)
                 .build();
 
         Note updatedNote = noteDao.updateNoteById(noteId, newNote);
 
         if (updatedNote == null) {
-            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+            return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
         }
 
         return ResponseEntity.ok(NoteResponse.builder()
@@ -213,7 +144,7 @@ public class NoteService {
         Note deletedNote = noteDao.deleteNoteById(noteId);
 
         if (deletedNote == null) {
-            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+            return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
         }
 
          /*
@@ -224,9 +155,9 @@ public class NoteService {
             for (ImgUrl imgUrl : deletedNote.getImg_urls()) {
                 try {
                     String public_id = imgUrl.getPublic_id();
-                    deleteFile(public_id);
+                    cloudinaryUtil.deleteFile(public_id);
                 } catch (IOException e) {
-                    return ResponseEntity.internalServerError().body(new ExceptionBody("Error Destroying Image!"));
+                    return ResponseEntity.internalServerError().body(new MessageBody("Error Destroying Image!"));
                 }
             }
         }
@@ -252,7 +183,7 @@ public class NoteService {
         List<Note> notes = noteDao.getAllNotes(userId);
 
         if (notes == null) {
-            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+            return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
         }
 
         List<NoteResponse> noteResponses = notes.stream().map(note -> new NoteResponse(
@@ -280,7 +211,7 @@ public class NoteService {
         }
 
         if (notesLowToHigh == null) {
-            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+            return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
         }
 
         List<NoteResponse> noteResponses = notesLowToHigh.stream().map(note -> new NoteResponse(
@@ -296,12 +227,11 @@ public class NoteService {
         return ResponseEntity.ok(noteResponses);
     }
 
-
     public ResponseEntity<?> searchNotes(String searchText, Integer userId) {
         List<Note> searchedNotes = noteDao.searchNote(searchText, userId);
 
         if (searchedNotes == null) {
-            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+            return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
         }
 
         List<NoteResponse> noteResponses = searchedNotes.stream().map(searchedNote ->
@@ -332,7 +262,7 @@ public class NoteService {
         );
 
         if (emailStatus == null) {
-            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+            return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
         }
 
         return ResponseEntity.ok(new NoteResponse(
@@ -345,22 +275,41 @@ public class NoteService {
         ));
     }
 
+    public ResponseEntity<?> uploadImage(
+            List<MultipartFile> multipartFileList
+    ) {
 
-    private ImgUrl uploadFile(MultipartFile multipartFile) throws IOException {
-        Map uploadResult = cloudinary.uploader()
-                .upload(
-                        multipartFile.getBytes(),
-                        Map.of("public_id", UUID.randomUUID().toString())
-                );
-        String public_id = (String) uploadResult.get("public_id");
-        String public_url = (String) uploadResult.get("secure_url");
+        List<ImageResponse> imgUrls = new ArrayList<>();
 
-        return new ImgUrl(public_id, public_url);
+        if (multipartFileList != null && multipartFileList.size() > 0) {
+            for (MultipartFile file : multipartFileList) {
+                try {
+                    //TODO: Remember to change the return type of uploadFile() to ImageResponse
+                    ImageResponse imgUrl = cloudinaryUtil.uploadFile(file);
+                    imgUrls.add(imgUrl);
+                } catch (IOException e) {
+                    return ResponseEntity.internalServerError().body(new MessageBody("Error Uploading Image!"));
+                }
+            }
+        }
+
+        return ResponseEntity.ok(imgUrls);
 
     }
 
-    private void deleteFile(String public_id) throws IOException {
-        cloudinary.uploader().destroy(public_id, ObjectUtils.emptyMap());
+
+    public ResponseEntity<?> deleteImage(
+            String public_id
+    ) {
+        try {
+            cloudinaryUtil.deleteFile(public_id);
+            return ResponseEntity.accepted().body(new DeleteImageResponse(
+                    "Image Delete Successfully!",
+                    public_id
+            ));
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(new MessageBody("Error Destroying Image!"));
+        }
     }
 
 

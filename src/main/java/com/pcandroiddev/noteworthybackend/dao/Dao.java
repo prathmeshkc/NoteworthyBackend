@@ -13,7 +13,7 @@ public class Dao {
 
     private static final Logger log = Logger.getAnonymousLogger();
     private static final ThreadLocal sessionThread = new ThreadLocal();
-//        private static final SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+    //        private static final SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
     private static final SessionFactory sessionFactory = new Configuration().configure("hibernate.cfg.xml").buildSessionFactory();
 
     protected Dao() {
@@ -30,32 +30,32 @@ public class Dao {
         return entityManager;
     }
 
-    public static Session getSession() {
-        Session session = (Session) Dao.sessionThread.get();
+    /* public static Session getSession() {
+         Session session = (Session) Dao.sessionThread.get();
 
-        if (session == null) {
-            session = sessionFactory.openSession();
-            Dao.sessionThread.set(session);
-        }
-        return session;
-    }
-
+         if (session == null) {
+             session = sessionFactory.openSession();
+             Dao.sessionThread.set(session);
+         }
+         return session;
+     }
+ */
     protected void begin() {
-        getSession().getTransaction().begin();
+        getEntityManager().getTransaction().begin();
     }
 
     protected void commit() {
-        getSession().getTransaction().commit();
+        getEntityManager().getTransaction().commit();
     }
 
     protected void rollback() {
         try {
-            getSession().getTransaction().rollback();
+            getEntityManager().getTransaction().rollback();
         } catch (HibernateException e) {
             log.log(Level.WARNING, "Cannot rollback", e);
         }
         try {
-            getSession().close();
+            getEntityManager().close();
         } catch (HibernateException e) {
             log.log(Level.WARNING, "Cannot close", e);
         }
@@ -63,7 +63,7 @@ public class Dao {
     }
 
     public static void close() {
-        getSession().close();
+        getEntityManager().close();
         Dao.sessionThread.set(null);
     }
 }
