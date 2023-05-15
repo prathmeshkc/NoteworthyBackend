@@ -38,8 +38,7 @@ public class NoteController {
     @PutMapping("/{noteId}")
     public ResponseEntity<?> updateNote(
             @PathVariable String noteId,
-            @RequestBody NoteRequest noteRequest,
-            HttpServletRequest mutableHttpServletRequest
+            @RequestBody NoteRequest noteRequest
     ) {
 
         return noteService.updateNote(
@@ -47,8 +46,7 @@ public class NoteController {
                 noteRequest.getTitle(),
                 noteRequest.getDescription(),
                 noteRequest.getPriority(),
-                noteRequest.getImages(),
-                mutableHttpServletRequest
+                noteRequest.getImages()
         );
     }
 
