@@ -125,9 +125,9 @@ public class NoteController {
         }
     }
 
-    @GetMapping("/{searchText}")
+    @GetMapping("/search")
     public ResponseEntity<?> searchNotes(
-            @PathVariable String searchText,
+            @RequestParam(name = "searchQuery") String searchText,
             HttpServletRequest httpServletRequest
     ) {
         try {
