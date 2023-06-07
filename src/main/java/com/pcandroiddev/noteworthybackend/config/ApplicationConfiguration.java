@@ -1,6 +1,7 @@
 package com.pcandroiddev.noteworthybackend.config;
 
 import com.cloudinary.Cloudinary;
+import com.google.gson.Gson;
 import com.pcandroiddev.noteworthybackend.model.user.User;
 import com.pcandroiddev.noteworthybackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +73,11 @@ public class ApplicationConfiguration {
         config.put("api_secret", API_SECRET);
 
         return new Cloudinary(config);
+    }
+
+    @Bean
+    public Gson gson() {
+        return new Gson();
     }
 
 }

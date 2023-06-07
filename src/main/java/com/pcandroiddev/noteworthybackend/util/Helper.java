@@ -2,6 +2,9 @@ package com.pcandroiddev.noteworthybackend.util;
 
 import com.pcandroiddev.noteworthybackend.model.note.Note;
 import com.pcandroiddev.noteworthybackend.model.note.Priority;
+import com.pcandroiddev.noteworthybackend.model.response.NoteResponse;
+
+import java.util.List;
 
 public class Helper {
 
@@ -28,6 +31,17 @@ public class Helper {
                 note.getDescription() +
                 "\n";
 
+    }
+
+    public static List<NoteResponse> getNoteResponse(List<Note> notes) {
+        return notes.stream().map(note -> new NoteResponse(
+                note.getId(),
+                note.getUser().getId(),
+                note.getTitle(),
+                note.getDescription(),
+                note.getPriority().name(),
+                note.getImg_urls()
+        )).toList();
     }
 
 }
