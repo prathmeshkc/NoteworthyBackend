@@ -278,43 +278,6 @@ public class NoteService {
         return Helper.getNoteResponse(searchedNotes);
     }
 
-    //TODO: Not Working. Throwing IOException
-    public ResponseEntity<?> shareNoteByEmail(String id) {
-        try {
-            Integer noteId = Integer.parseInt(id);
-            Optional<Note> noteOptional = noteRepository.findById(noteId);
-            if (noteOptional.isEmpty()) {
-                ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageBody("Note Not Found!"));
-            }
-
-            Note note = noteOptional.get();
-            System.out.println("shareNoteByEmail: " + note);
-            String emailBody = noteToEmailBody(note);
-
-            String emailStatus = emailSenderService.sendEmailWithAttachments(
-                    "prathmesh.kiranchaudhari2001@gmail.com",
-                    emailBody,
-                    note.getImg_urls()
-            );
-
-            if (emailStatus == null) {
-                return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
-            }
-
-            return ResponseEntity.ok(new NoteResponse(
-                    note.getId(),
-                    note.getUser().getId(),
-                    note.getTitle(),
-                    note.getDescription(),
-                    note.getPriority().name(),
-                    note.getImg_urls()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
-        }
-    }
-
-
 
     public List<ImageResponse> uploadImage(
             List<MultipartFile> multipartFileList

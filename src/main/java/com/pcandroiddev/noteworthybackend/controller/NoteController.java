@@ -141,13 +141,6 @@ public class NoteController {
         }
     }
 
-    @PostMapping("/share/{noteId}")
-    public ResponseEntity<?> shareNoteByEmail(
-            @PathVariable String noteId
-    ) {
-        return noteService.shareNoteByEmail(noteId);
-    }
-
 
     @PostMapping("/image/upload-image")
     public ResponseEntity<?> uploadImage(
