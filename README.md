@@ -5,7 +5,8 @@ NoteWorthy is a productive application inspired from Google Keeps. It lets you s
 
 ## About
 
-NoteWorthy is a full-stack application with its backend built in Java with Spring Boot and the frontend is native Android app made in Kotlin
+NoteWorthy is a full-stack application with its backend built in Java with Spring Boot and the frontend is native Android app made in Kotlin.
+The backend was previously deployed on Railway.app but now I've run out of free credits 🥲
 
 ## App Features
 
