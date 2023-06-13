@@ -1,16 +1,14 @@
 package com.pcandroiddev.noteworthybackend.service.user;
 
 import com.pcandroiddev.noteworthybackend.model.exception.MessageBody;
-import com.pcandroiddev.noteworthybackend.model.jwt.RefreshToken;
+import com.pcandroiddev.noteworthybackend.model.jwt.RefreshTokenRequest;
 import com.pcandroiddev.noteworthybackend.model.request.LoginRequest;
-import com.pcandroiddev.noteworthybackend.model.request.RefreshTokenRequest;
 import com.pcandroiddev.noteworthybackend.model.request.RegisterRequest;
 import com.pcandroiddev.noteworthybackend.model.response.AuthenticationResponse;
 import com.pcandroiddev.noteworthybackend.model.user.Role;
 import com.pcandroiddev.noteworthybackend.model.user.User;
 import com.pcandroiddev.noteworthybackend.repository.UserRepository;
 import com.pcandroiddev.noteworthybackend.service.jwt.JWTService;
-import com.pcandroiddev.noteworthybackend.service.jwt.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class AuthenticationService {
 
     @Autowired
@@ -35,9 +32,6 @@ public class AuthenticationService {
 
     @Autowired
     private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private RefreshTokenService refreshTokenService;
 
 
     public ResponseEntity<?> register(RegisterRequest request) {
@@ -55,12 +49,10 @@ public class AuthenticationService {
 
         try {
             User newUser = userRepository.save(user);
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(request.getEmail());
             var jwtToken = jwtService.generateTokenFromUserDetails(newUser);
             return ResponseEntity.ok(AuthenticationResponse.builder()
                     .user(newUser)
                     .token(jwtToken)
-                    .refreshToken(refreshToken.getToken())
                     .build());
         } catch (Exception exception) {
             return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
@@ -92,31 +84,26 @@ public class AuthenticationService {
             return ResponseEntity.badRequest().body(new MessageBody("Account is Disabled!"));
         }
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(request.getEmail());
         var jwtToken = jwtService.generateTokenFromUserDetails(user.get());
         return ResponseEntity.ok(AuthenticationResponse.builder()
                 .user(user.get())
                 .token(jwtToken)
-                .refreshToken(refreshToken.getToken())
                 .build());
     }
 
-    public ResponseEntity<?> refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        return refreshTokenService.findByToken(refreshTokenRequest.getToken())
-                .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .map(user -> {
-                    String jwtToken = jwtService.generateTokenFromUserDetails(user);
-                    return ResponseEntity.ok(AuthenticationResponse.builder()
-                            .user(user)
-                            .token(jwtToken)
-                            .refreshToken(refreshTokenRequest.getToken())
-                            .build());
-                }).orElseThrow(() -> new RuntimeException("Refresh token not found in database!"));
+    public ResponseEntity<?> refreshJWT(RefreshTokenRequest request) {
+        var user = userRepository.findByEmail(request.getEmail());
+
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageBody("User not found!"));
+        }
+
+        var newJWT = jwtService.generateTokenFromUserDetails(user.get());
+        return ResponseEntity.ok(AuthenticationResponse.builder()
+                .user(user.get())
+                .token(newJWT)
+                .build());
     }
 
-    public void logout(RefreshTokenRequest refreshTokenRequest) {
-        refreshTokenService.deleteRefreshToken(refreshTokenRequest.getToken());
-    }
 
 }
