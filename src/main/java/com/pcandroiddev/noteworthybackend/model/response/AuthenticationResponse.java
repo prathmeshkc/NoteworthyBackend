@@ -1,4 +1,4 @@
-package com.pcandroiddev.noteworthybackend.model.auth;
+package com.pcandroiddev.noteworthybackend.model.response;
 
 import com.pcandroiddev.noteworthybackend.model.user.User;
 import lombok.AllArgsConstructor;

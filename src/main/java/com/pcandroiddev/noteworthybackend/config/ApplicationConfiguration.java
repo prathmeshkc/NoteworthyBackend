@@ -1,6 +1,9 @@
 package com.pcandroiddev.noteworthybackend.config;
 
-import com.pcandroiddev.noteworthybackend.dao.UserDao;
+import com.cloudinary.Cloudinary;
+import com.google.gson.Gson;
+import com.pcandroiddev.noteworthybackend.model.user.User;
+import com.pcandroiddev.noteworthybackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -15,24 +18,30 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static com.pcandroiddev.noteworthybackend.util.Constant.*;
+
+
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfiguration {
 
-
     @Autowired
-    private UserDao userDao;
+    private UserRepository userRepository;
 
     @Bean
     public UserDetailsService userDetailsService() {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-                UserDetails userDetails = userDao.findByEmail(email);
-                if(userDetails == null){
+                Optional<User> userDetails = userRepository.findByEmail(email);
+                if (userDetails.isEmpty()) {
                     throw new UsernameNotFoundException("User not found!");
                 }
-                return userDao.findByEmail(email);
+                return userDetails.get();
             }
         };
     }
@@ -56,5 +65,19 @@ public class ApplicationConfiguration {
         return configuration.getAuthenticationManager();
     }
 
+    @Bean
+    public Cloudinary cloudinary() {
+        Map<String, String> config = new HashMap<>();
+        config.put("cloud_name", CLOUD_NAME);
+        config.put("api_key", API_KEY);
+        config.put("api_secret", API_SECRET);
+
+        return new Cloudinary(config);
+    }
+
+    @Bean
+    public Gson gson() {
+        return new Gson();
+    }
 
 }

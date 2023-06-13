@@ -1,29 +1,28 @@
 package com.pcandroiddev.noteworthybackend.service.user;
 
-import com.pcandroiddev.noteworthybackend.dao.UserDao;
-import com.pcandroiddev.noteworthybackend.model.auth.AuthenticationResponse;
-import com.pcandroiddev.noteworthybackend.model.auth.LoginRequest;
-import com.pcandroiddev.noteworthybackend.model.auth.RegisterRequest;
-import com.pcandroiddev.noteworthybackend.model.exception.ExceptionBody;
+import com.pcandroiddev.noteworthybackend.model.exception.MessageBody;
+import com.pcandroiddev.noteworthybackend.model.jwt.RefreshTokenRequest;
+import com.pcandroiddev.noteworthybackend.model.request.LoginRequest;
+import com.pcandroiddev.noteworthybackend.model.request.RegisterRequest;
+import com.pcandroiddev.noteworthybackend.model.response.AuthenticationResponse;
 import com.pcandroiddev.noteworthybackend.model.user.Role;
 import com.pcandroiddev.noteworthybackend.model.user.User;
+import com.pcandroiddev.noteworthybackend.repository.UserRepository;
 import com.pcandroiddev.noteworthybackend.service.jwt.JWTService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class AuthenticationService {
 
     @Autowired
-    private UserDao userDao;
+    private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -43,45 +42,68 @@ public class AuthenticationService {
                 .role(Role.USER)
                 .build();
 
-        Object savedUser = userDao.saveUser(user);
-
-        if (savedUser instanceof ExceptionBody) {
-            return ResponseEntity.badRequest().body(savedUser);
+        Optional<User> savedUser = userRepository.findByEmail(request.getEmail());
+        if (savedUser.isPresent()) {
+            return ResponseEntity.badRequest().body(new MessageBody("User already exists!"));
         }
 
-        if (savedUser == null) {
-            return ResponseEntity.internalServerError().body(new ExceptionBody("Something Went Wrong!"));
+        try {
+            User newUser = userRepository.save(user);
+            var jwtToken = jwtService.generateTokenFromUserDetails(newUser);
+            return ResponseEntity.ok(AuthenticationResponse.builder()
+                    .user(newUser)
+                    .token(jwtToken)
+                    .build());
+        } catch (Exception exception) {
+            return ResponseEntity.internalServerError().body(new MessageBody("Something Went Wrong!"));
         }
-
-        var jwtToken = jwtService.generateTokenFromUserDetails((User) savedUser);
-        return ResponseEntity.ok(AuthenticationResponse.builder()
-                .user((User) savedUser)
-                .token(jwtToken)
-                .build());
     }
 
     public ResponseEntity<?> login(LoginRequest request) {
 
-        var user = userDao.findByEmail(request.getEmail());
 
-        if (user == null) {
-            return ResponseEntity.badRequest().body(new ExceptionBody("User not found!"));
+        var user = userRepository.findByEmail(request.getEmail());
+
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageBody("User not found!"));
         }
 
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException badCredentialsException) {
+            return ResponseEntity.badRequest().body(new MessageBody("Incorrect Username or Password!"));
+        } catch (LockedException lockedException) {
+            return ResponseEntity.badRequest().body(new MessageBody("Account is Locked!"));
+        } catch (DisabledException disabledException) {
+            return ResponseEntity.badRequest().body(new MessageBody("Account is Disabled!"));
+        }
 
-        var jwtToken = jwtService.generateTokenFromUserDetails(user);
+        var jwtToken = jwtService.generateTokenFromUserDetails(user.get());
         return ResponseEntity.ok(AuthenticationResponse.builder()
-                .user(user)
+                .user(user.get())
                 .token(jwtToken)
                 .build());
-
-
     }
+
+    public ResponseEntity<?> refreshJWT(RefreshTokenRequest request) {
+        var user = userRepository.findByEmail(request.getEmail());
+
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageBody("User not found!"));
+        }
+
+        var newJWT = jwtService.generateTokenFromUserDetails(user.get());
+        return ResponseEntity.ok(AuthenticationResponse.builder()
+                .user(user.get())
+                .token(newJWT)
+                .build());
+    }
+
+
 }

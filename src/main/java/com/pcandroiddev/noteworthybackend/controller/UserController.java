@@ -1,10 +1,8 @@
 package com.pcandroiddev.noteworthybackend.controller;
 
-import com.pcandroiddev.noteworthybackend.dao.UserDao;
-import com.pcandroiddev.noteworthybackend.model.auth.LoginRequest;
-import com.pcandroiddev.noteworthybackend.model.auth.RegisterRequest;
+import com.pcandroiddev.noteworthybackend.model.request.LoginRequest;
+import com.pcandroiddev.noteworthybackend.model.request.RegisterRequest;
 import com.pcandroiddev.noteworthybackend.service.user.AuthenticationService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     @Autowired
-    private final AuthenticationService authenticationService;
+    private AuthenticationService authenticationService;
 
-    @Autowired
-    private final UserDao userDao;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(
@@ -36,6 +32,8 @@ public class UserController {
             @RequestBody LoginRequest request
     ) {
         return authenticationService.login(request);
-
     }
+
+
+
 }

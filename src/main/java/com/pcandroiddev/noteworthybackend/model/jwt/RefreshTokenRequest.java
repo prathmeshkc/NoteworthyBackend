@@ -1,4 +1,4 @@
-package com.pcandroiddev.noteworthybackend.model.auth;
+package com.pcandroiddev.noteworthybackend.model.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginRequest {
-    private String email;
-    private String password;
+public class RefreshTokenRequest {
+    String email;
 }
