@@ -137,7 +137,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <!-- Specify the main class of your Spring Boot application -->
-                    <mainClass>com.pcandroiddev.NoteWorthyBackend.YourSpringBootApplication</mainClass>
+                    <mainClass>com.pcandroiddev.noteworthybackend.NoteWorthyBackendApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
